@@ -1,0 +1,154 @@
+<style>
+	body {
+		max-width: 960px;
+		margin: auto;
+    margin-bottom: 100px;
+    clear: both;
+	}
+		
+	.page {
+		font-family: cantarell, Roboto;
+    margin-bottom: 100px;
+	}
+
+	.page .title {
+		display: block;
+		font-size: 2em;
+		margin-top: 0.67em;
+		margin-bottom: 0.67em;
+		margin-left: 0;
+		margin-right: 0;
+		font-weight: bold;
+		font-family: Ubuntu, Roboto;
+	}
+	
+	.page .content {
+		font-size: 1.2em;
+	}
+  
+  .footer {
+    display: block;
+		font-family: cantarell, Roboto;
+  }
+  
+  code {
+    font-family: Ubuntu Mono;
+  }
+</style>
+<div class="page">
+	<div class="title" id="title"></div>
+	<div class="time" id="time"></div>
+	<div class="content" id="content"></div>
+</div>
+<div class="footer" id="footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+	var b = "`";
+	var bb = "```";
+</script>
+<script>
+  /* Author: Lance Bachmeier
+     License: GPLv2 or GPLv3 or Boost or MIT, at your discretion */
+	/* Posts go here */
+	var pages =
+		[{"id": "index",
+    "time": "20201125150402",
+		 "title": "Wiki Index", 
+		 "content": `
+## Links
+
+Add some links to other pages here.
+
+## About
+     
+This is a wiki. I am aware that there are many excellent wikis out there, but to my knowledge, none have this particular combination of features:
+
+- Everything is inside a single file. You can email your entire wiki to someone else and they can open it with all functionality right in their browser. No web server is necessary. If you do want to put it on a web server, all you do is copy it into an appropriate directory on the web server and you're done - there's no installation or maintenance. The only dependencies are delivered by CDN. It's a file with html, CSS, and basic Javascript, so there is no such thing as "upgrading for security purposes". Your wiki will run just fine 20 years from now with no modifications.
+- Pages are written in markdown format. There is no need to write html or even know html.
+- All of the code is easy to read, modify, and extend. This is true even if you are a beginner with Javascript.
+- Math support. Inline like this: $y_{t} = \\varepsilon_{t}$ and displayed like this: $$\\epsilon_{t} = \\eta_{t}.$$
+- Linking like this: ${b}[interpost linking](wiki.html?page=interlinking)${b}.
+
+Nothing comes for free. This is what you give up:
+
+- You enter and edit pages as JS objects. That certainly isn't as nice as opening a text editor and typing away in markdown, complete with editing support.
+- You'll have to enter boilerplate (variable names and the timestamp) by hand for each page or else configure a snippet in your html editor that does it for you.
+- You have to add a double backslash inside equations.
+- You can't have backticks in the content of a page. You need to use an alternative notation: ` + "<code>${b}</code>" + ` for a single backtick or ` + "<code>${bb}</code>" + ` for three backticks as you'd put around a code block.
+
+App design is always a matter of tradeoffs. I chose editing JS objects by hand in a text editor so I could have everything in a single, portable file and have full functionality without a web server. You might have other preferences. I expect most people do. The good news is that there are many wikis out there that will suit your needs. Here are just a few to check out for a full in-browser experience using a web server:
+
+- DokuWiki
+- PmWiki
+- TiddlyWiki
+- Notion
+
+I plan to some day add additional features, like a page index, tags, and groups. It's very simple, so jump in and add your own features, even if you don't know Javascript.`},
+{"id": "test1",
+"time": "20201125215538",
+"title": "Test Page 1",
+"content": "This is a #test #page."},
+{"id": "test2",
+"time": "20201125215608",
+"title": "Test Page 2",
+"content": "This is another #test page."}];
+	var url = new URL(document.location.href);
+	var sp = Array.from(url.searchParams);
+	var argname = "index";
+	var arg = "";
+	if (sp.length > 0) {
+		argname = sp[0][0];
+		arg = sp[0][1];
+	}
+	
+  var obj = pages.find(element => element["id"] === arg);
+  if (argname === "tag") {
+    document.getElementById("title").innerHTML = `<h1>Pages containing tag <code>#${arg}</code>`;
+    document.getElementById("content").innerHTML = findTag("#" + arg);
+  } else if (obj === undefined) {
+    const now = new Date();
+    const timestamp = "" + now.getFullYear() + now.getMonth() + now.getDate() + now.getHours() + now.getMinutes() + now.getSeconds();
+    document.getElementById("title").innerHTML = "<h1>That Page Doesn't Exist!</h1>";
+    document.getElementById("content").innerHTML = "Failed to find page with id <code>" + arg + `</code>. Please create a page with this information:
+
+<pre><code>
+{"id": "${arg}",
+"time": "${timestamp}",
+"title": "",
+"content": ""}
+</code></pre>`;
+  } else {
+    document.getElementById("title").innerHTML = obj["title"];
+		document.getElementById("time").innerHTML = "<p><i>Last Update: " + obj["time"].substr(0,4) + "-" + obj["time"].substr(4,2) + "-" + obj["time"].substr(6,2) + " " + obj["time"].substr(8,2) + ":" + obj["time"].substr(10,2) + "</i></p>";
+    document.getElementById("content").innerHTML = marked(obj["content"]);
+    if (argname === "index") {
+      document.getElementById("footer").innerHTML = `Like my wiki? You can download the entire thing in one file by simply saving this page. <a href="https://github.com/bachmeil/sfb">Create your own single file wiki</a>.`;
+    }
+  }
+  
+  function findTag(tag) {
+    var ind = "";
+    var subset = pages.filter(page => page["content"].search(tag) > -1);
+		subset.forEach(pageInfo);
+
+		function pageInfo(obj, index, array) {
+			ind += `<a href="wiki.html?page=${obj["id"]}">${obj["title"]}</a>` + "  \n" + marked(obj["content"].substr(0,100)) + "<br><br>";
+		}
+		
+		return ind;
+	}
+
+</script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['$$', '$$']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
