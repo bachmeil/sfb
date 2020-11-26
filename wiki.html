@@ -31,6 +31,13 @@
 		font-family: cantarell, Roboto;
   }
   
+  .page button {
+    background-color: inherit;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid gray;
+  }
+  
   code {
     font-family: Ubuntu Mono;
   }
@@ -39,6 +46,7 @@
 	<div class="title" id="title"></div>
 	<div class="time" id="time"></div>
 	<div class="content" id="content"></div>
+  <div id="backlinks"><button onclick="backlinks();">Backlinks</button></div>
 </div>
 <div class="footer" id="footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -57,7 +65,10 @@
 		 "content": `
 ## Links
 
-Add some links to other pages here.
+Add some links to other pages here. Examples:
+
+[Test Page 1](wiki.html?page=test1)  
+[Test Page 2](wiki.html?page=test2)
 
 ## About
      
@@ -70,6 +81,7 @@ This is a wiki. I am aware that there are many excellent wikis out there, but to
 - Linking like this: ${b}[interpost linking](wiki.html?page=interlinking)${b}.
 - Support for Twitter-style hashtags. If you insert text of the form <code>#tag</code> in a page, it will change to a link to a tag search for that tag. You can also search for pages containing tag '#foo' by going to <code>wiki.html?tag=foo</code>. You *do not* include the <code>#</code> in the search. It will be added automatically.
 - A regular search for 'foo' (no leading <code>#</code>) is done by going to URL <code>wiki.html?search=foo</code>. That returns all pages that include foo, including words like 'food' and 'buffoon'.
+- Backlinks. Each regular page contains a link you can click to display a list of pages linking to the current page.
 
 Nothing comes for free. This is what you give up:
 
@@ -85,7 +97,7 @@ App design is always a matter of tradeoffs. I chose editing JS objects by hand i
 - TiddlyWiki
 - Notion
 
-I plan to some day add additional features, like a page index, tags, and groups. It's very simple, so jump in and add your own features, even if you don't know Javascript.`},
+I plan to some day add additional features, like a page index and groups. It's very simple, so jump in and add your own features, even if you don't know Javascript.`},
 {"id": "test1",
 "time": "20201125215538",
 "title": "Test Page 1",
@@ -107,7 +119,8 @@ I plan to some day add additional features, like a page index, tags, and groups.
   if (argname === "tag") {
     document.getElementById("title").innerHTML = `<h1>Pages containing tag <code>#${arg}</code>`;
     document.getElementById("content").innerHTML = pageSearch("#" + arg);
-  } else if (argname === "search") {
+  } 
+  else if (argname === "search") {
     document.getElementById("title").innerHTML = `<h1>Pages containing <code>#${arg}</code>`;
     document.getElementById("content").innerHTML = pageSearch(arg);
   }
@@ -145,6 +158,9 @@ I plan to some day add additional features, like a page index, tags, and groups.
 		return ind;
 	}
 
+  function backlinks() {
+    document.getElementById("backlinks").innerHTML = "<h2>Pages linking to this page</h2>\n\n" + pageSearch(new RegExp('\\(wiki.html\\' + url["search"] + '\\)', 'g'));
+  }
 </script>
 <script>
 MathJax = {
