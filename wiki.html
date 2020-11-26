@@ -68,6 +68,8 @@ This is a wiki. I am aware that there are many excellent wikis out there, but to
 - All of the code is easy to read, modify, and extend. This is true even if you are a beginner with Javascript.
 - Math support. Inline like this: $y_{t} = \\varepsilon_{t}$ and displayed like this: $$\\epsilon_{t} = \\eta_{t}.$$
 - Linking like this: ${b}[interpost linking](wiki.html?page=interlinking)${b}.
+- Support for Twitter-style hashtags. If you insert text of the form <code>#tag</code> in a page, it will change to a link to a tag search for that tag. You can also search for pages containing tag '#foo' by going to <code>wiki.html?tag=foo</code>. You *do not* include the <code>#</code> in the search. It will be added automatically.
+- A regular search for 'foo' (no leading <code>#</code>) is done by going to URL <code>wiki.html?search=foo</code>. That returns all pages that include foo, including words like 'food' and 'buffoon'.
 
 Nothing comes for free. This is what you give up:
 
@@ -94,8 +96,8 @@ I plan to some day add additional features, like a page index, tags, and groups.
 "content": "This is another #test page."}];
 	var url = new URL(document.location.href);
 	var sp = Array.from(url.searchParams);
-	var argname = "index";
-	var arg = "";
+	var argname = "";
+	var arg = "index";
 	if (sp.length > 0) {
 		argname = sp[0][0];
 		arg = sp[0][1];
@@ -104,8 +106,12 @@ I plan to some day add additional features, like a page index, tags, and groups.
   var obj = pages.find(element => element["id"] === arg);
   if (argname === "tag") {
     document.getElementById("title").innerHTML = `<h1>Pages containing tag <code>#${arg}</code>`;
-    document.getElementById("content").innerHTML = findTag("#" + arg);
-  } else if (obj === undefined) {
+    document.getElementById("content").innerHTML = pageSearch("#" + arg);
+  } else if (argname === "search") {
+    document.getElementById("title").innerHTML = `<h1>Pages containing <code>#${arg}</code>`;
+    document.getElementById("content").innerHTML = pageSearch(arg);
+  }
+  else if (obj === undefined) {
     const now = new Date();
     const timestamp = "" + now.getFullYear() + now.getMonth() + now.getDate() + now.getHours() + now.getMinutes() + now.getSeconds();
     document.getElementById("title").innerHTML = "<h1>That Page Doesn't Exist!</h1>";
@@ -120,15 +126,16 @@ I plan to some day add additional features, like a page index, tags, and groups.
   } else {
     document.getElementById("title").innerHTML = obj["title"];
 		document.getElementById("time").innerHTML = "<p><i>Last Update: " + obj["time"].substr(0,4) + "-" + obj["time"].substr(4,2) + "-" + obj["time"].substr(6,2) + " " + obj["time"].substr(8,2) + ":" + obj["time"].substr(10,2) + "</i></p>";
-    document.getElementById("content").innerHTML = marked(obj["content"]);
+    var con = obj["content"].replaceAll(/#[a-zA-Z]+/g, function(match) { return `[${match}](wiki.html?tag=${match.substr(1)})`; });
+    document.getElementById("content").innerHTML = marked(con);
     if (argname === "index") {
       document.getElementById("footer").innerHTML = `Like my wiki? You can download the entire thing in one file by simply saving this page. <a href="https://github.com/bachmeil/sfb">Create your own single file wiki</a>.`;
     }
   }
   
-  function findTag(tag) {
+  function pageSearch(term) {
     var ind = "";
-    var subset = pages.filter(page => page["content"].search(tag) > -1);
+    var subset = pages.filter(page => page["content"].search(term) > -1);
 		subset.forEach(pageInfo);
 
 		function pageInfo(obj, index, array) {
