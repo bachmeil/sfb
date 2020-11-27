@@ -1,0 +1,187 @@
+<style>
+	body {
+		max-width: 960px;
+		margin: auto;
+	}
+		
+	.post {
+		font-family: cantarell, Roboto;
+	}
+
+	.post .title {
+		display: block;
+		font-size: 2em;
+		margin-top: 0.67em;
+		margin-bottom: 0.67em;
+		margin-left: 0;
+		margin-right: 0;
+		font-weight: bold;
+		font-family: Ubuntu, Roboto;
+	}
+	
+	.post .content {
+		font-size: 1.2em;
+	}
+  
+  .footer {
+    position: fixed;
+    bottom: 15px;
+    left: 20px;
+		font-family: cantarell, Roboto;
+  }
+  
+  code {
+    font-family: Ubuntu Mono;
+  }
+</style>
+<div class="post">
+	<div class="title" id="title"></div>
+	<div class="time" id="time"></div>
+	<div class="content" id="content"></div>
+</div>
+<div class="footer">
+  Like my blog? You can download the entire thing in one file by simply saving this page. <a href="https://github.com/bachmeil/sfb">Create your own single file blog</a>.
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+	var b = "`";
+	var bb = "```";
+</script>
+<script>
+  /* Author: Lance Bachmeier
+     License: GPLv2 or GPLv3 or Boost or MIT, at your discretion */
+
+	/* Config */
+	var indexLength = 25; // Number of posts on the index page, set to 0 for all on one page
+	
+	/* Posts go here */
+	var posts =
+		[{"time": "20201123222914",
+		 "title": "Single File Blogging", 
+		 "content": `I've finished up something that's been in the works for a while now. I call it "single file blogging".
+     
+Restrictions:
+
+- Everything in one file. You can email your entire blog to someone else and they can open it with all functionality in their browser. That means the only dependencies are those delivered by CDN.
+- Posts written in markdown format. No need to write any html or even know html.
+- Generated index that updates automatically if you add, edit, or remove a post.
+- Easy customization of everything.
+- Math support. Inline like this: $y_{t} = \\varepsilon_{t}$ and displayed like this: $$\\epsilon_{t} = \\eta_{t}.$$
+- Support for [interpost linking](blog.html?id=interlinking).
+
+Nothing comes for free, of course. This is what you give up:
+
+- Have to enter posts as JS objects. That's not terrible, but it certainly isn't as nice as opening a text editor and typing away in markdonw, complete with editing support.
+- Have to enter boilerplate (variable names and the timestamp) by hand for each post or configure a snippet in your html editor.
+- Have to add a double backslash inside equations.
+- Have to avoid backticks in your posts. You need to use an alternative notation: ` + "<code>${b}</code>" + ` for a single backtick or ` + "<code>${bb}</code>" + ` for three backticks as you'd put around a code block.`},
+{"time": "20201124104802",
+"id": "interlinking",
+"title": "How To: Interpost Linking",
+"content": `There are two ways to link to other posts in your blog. You can link by timestamp or by id.
+
+Every post has a timestamp, but since you probably don't want to work with a string of digits that could change due to updating the post, this is the less useful option.
+
+${bb}
+Link to another blog post: [description](blog.html?post=20200423101823)
+${bb}
+
+The better approach is to add an id to the post you want to link: ${b}"id": "thepost"${b} and then link like this:
+
+${bb}
+Link to another blog post: [description](blog.html?id=thepost)
+${bb}`},
+{"time": "20201124130602",
+"title": "SFB Syntax Special Cases",
+"content": `
+Syntax is that provided by [marked](https://marked.js.org) (default is Commonmark).
+
+- Uses MathJax for math support.
+    - Single dollar signs for inline equations.
+    - Double dollar signs for displayed equations.
+    - Have to double backslash inside equations.
+- You can't use backticks for code. That would exit the Javascript template literal. Instead, use ` + "<code>${b}</code> for one backtick (inline code) and <code>${bb}</code> for three backticks (code blocks)." + `
+
+Otherwise it's just markdown.`},
+{"time": "20201124212913",
+"title": "",
+"id": "",
+"content": ""}
+];
+	var url = new URL(document.location.href);
+	var sp = Array.from(url.searchParams);
+	var argname = "index";
+	var arg = "";
+	if (sp.length > 0) {
+		argname = sp[0][0];
+		arg = sp[0][1];
+	}
+	
+	if (argname === "index") {
+    var indexLength = indexLength;
+    if (indexLength === 0) {
+      indexLength = posts.length;
+    }
+		document.getElementById("title").innerHTML = "All Posts";
+		if (arg === "") {
+      var later = "";
+      if (indexLength < posts.length) {
+        later = '<a href="blog.html?index=2">Older ></a>';
+      }
+			document.getElementById("content").innerHTML = marked(buildIndex(0, indexLength) + "\n\n" + later);
+		} else {
+      var ind1 = indexLength * (Number(arg) - 1);
+      var ind2 = indexLength * Number(arg);
+      var earlier = "";
+      if (ind1 > 0) {
+        if (ind1 > 1) {
+          earlier = '<a href="blog.html?index=' + (Number(arg)-1) + '">< Earlier</a>';
+        } else {
+          earlier = '<a href="blog.html">< Earlier</a>';
+        }
+      }
+      var later = "";
+      if (ind2 < posts.length) {
+        later = '<a href="blog.html?index=' + (Number(arg)+1) + '">Later ></a>';
+      }
+			document.getElementById("content").innerHTML = marked(buildIndex(ind1, ind2) + "\n\n" + earlier + later + "\n\n");
+		}
+	} 
+  else if (argname === "post") {
+		var obj = posts[Number(arg)];
+		document.getElementById("title").innerHTML = obj["title"];
+		document.getElementById("time").innerHTML = "<p><i>Last Update: " + obj["time"].substr(0,4) + "-" + obj["time"].substr(4,2) + "-" + obj["time"].substr(6,2) + " " + obj["time"].substr(8,2) + ":" + obj["time"].substr(10,2) + "</i></p>";
+    document.getElementById("content").innerHTML = marked(obj["content"] + "\n\n[< Index](blog.html)\n\n");
+  }
+  else if (argname === "id") {
+    var obj = posts.find(element => element["id"] === arg);
+		document.getElementById("title").innerHTML = obj["title"];
+		document.getElementById("time").innerHTML = "<p><i>Last Update: " + obj["time"].substr(0,4) + "-" + obj["time"].substr(4,2) + "-" + obj["time"].substr(6,2) + " " + obj["time"].substr(8,2) + ":" + obj["time"].substr(10,2) + "</i></p>";
+    document.getElementById("content").innerHTML = marked(obj["content"] + "\n\n[< Index](blog.html)\n\n");
+  }
+	
+	function buildIndex(start, end) {
+		var ind = "";
+		posts.slice(start, end).forEach(postInfo);
+
+		function postInfo(obj, index, array) {
+			ind += "- [" + obj["title"] + "](blog.html?post=" + index + ")\n";
+		}
+		
+		return marked(ind);
+	}
+		
+</script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['$$', '$$']]
+  },
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
